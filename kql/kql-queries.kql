@@ -1,0 +1,71 @@
+﻿# KQL code snippets for the "Develop a Real-Time Leaderboard Using Kafka and Azure Data Explorer - I" blog post.
+
+// 1. after creating the SPN as in *Code Snippet 2* in the post add the SPN to your database
+// replace The-AppId and The-Tenant below with the values you received adter creating the SPN
+.add database leaderboard 
+  admins ('aadapp=The-AppId;The-Tenant') 'Kafka Connector SPN'
+
+// 2. create the table that will hold the kafka events
+// the schema of the table should match the event schema
+.create table GamePlay 
+(
+  PlayerID: int, GameID: int, 
+  Win: long, Stake: int, 
+  EventTime: datetime
+)
+
+// check that the table exists
+.show tables
+
+// 3. Enable streaming ingestion
+// table level
+.alter table GamePlay policy streamingingestion enable
+
+// to check if a table have streaming ingestion
+.show table GamePlay policy streamingingestion
+
+// if you want to enable it on db level
+// .alter database leaderboard policy streamingingestion enable
+
+// 4. create an ingestion mapping between the Kafka events and the columns in the table
+.create table GamePlay ingestion json mapping 'gameplay_json_mapping' 
+'['
+'  {"column":"PlayerID", "Properties":{"path":"$.playerId"}},' 
+'  {"column":"GameID", "Properties":{"path":"$.gameId"}},' 
+'  {"column":"Win", "Properties":{"path":"$.win"}},' 
+'  {"column":"Stake", "Properties":{"path":"$.stake"}},' 
+'  {"column":"EventTime", "Properties":{"path":"$.eventTime"}}' 
+']'
+
+// check what mappings you have
+.show table GamePlay ingestion mappings
+
+// 5. After having configured the connector and deployed it to Kafka Connect check "stuff"
+// before generating events do a "count" against the table
+
+GamePlay
+| count
+
+// the above should return 0, if not
+.clear table GamePlay data
+
+// run the Python script to generate events
+
+// get the all the events (equivalent to SELECT * FROM GamePlay)
+GamePlay
+
+// before generating events in a loop clear out all data
+.clear table GamePlay data
+
+// start generating
+// check it worked, execute it a couple of times to see the count increase
+GamePlay
+| count 
+
+// check the latency of the events
+GamePlay 
+| extend IngestionTime = ingestion_time(),  diffTime =  datetime_diff('millisecond',ingestion_time(), EventTime) 
+| order by EventTime
+
+
+

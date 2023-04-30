@@ -1,0 +1,10 @@
+# This file is the code for logging in to Azure using Azure CLI, as well as creating a SPN
+
+## log in
+az login
+
+## set the subscription
+az account set --subscription <your-subscription-id>
+
+## create the SPN
+az ad sp create-for-rbac -n "leaderboard-adx-spn"

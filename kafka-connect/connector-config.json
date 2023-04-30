@@ -1,0 +1,22 @@
+{
+    "name": "WagerConnector",
+    "config": {
+        "connector.class": "com.microsoft.azure.kusto.kafka.connect.sink.KustoSinkConnector",
+        "topics": "gameplay",
+        "kusto.ingestion.url":"https://<your-ingestion-url>",
+        "kusto.query.url":"https://<your-query-url>",
+        "aad.auth.authority": "<spn-tenant-id",
+        "aad.auth.appid":"<spn-app-id",
+        "aad.auth.appkey":"<spn-password>",
+        "kusto.tables.topics.mapping": "[{'topic': 'gameplay','db': 'leaderboard', 'table': 'GamePlay','format': 'json', 'mapping':'gameplay_json_mapping', 'streaming': 'true'}]", 
+        "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable":"false",
+        "value.converter.schemas.enable":"false",
+        "tasks.max": "1",
+        "tempdir.path":"/var/tmp/",
+        "flush.size.bytes":"10485760",
+        "flush.interval.ms": "100",
+        "behavior.on.error": "LOG"
+    }
+}
